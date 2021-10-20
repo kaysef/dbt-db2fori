@@ -1,0 +1,10 @@
+name: dbt_db2_for_i
+version: 1.0
+config-version: 2
+
+quoting:
+  database: false
+  schema: false
+  identifier: false
+
+macro-paths: ["macros"]
