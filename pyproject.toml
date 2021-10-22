@@ -1,8 +1,13 @@
 [tool.poetry]
 name = "dbt-db2fori"
 version = "0.1.0"
-description = ""
-authors = ["Seth <sdowusu@gmail.com>"]
+description = "dbt adapter for IBM db2 for i"
+license = "MIT"
+readme = "README.md"
+homepage = "https://github.com/kaysef/dbt-db2fori"
+repository = "https://github.com/kaysef/dbt-db2fori"
+documentation = "https://github.com/kaysef/dbt-db2fori"
+authors = ["Seth O <sdowusu@gmail.com>"]
 
 [tool.poetry.dependencies]
 python = "^3.9"
