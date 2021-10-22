@@ -23,7 +23,7 @@ class DB2ForICredentials(Credentials):
     database: str
     UID: Optional[str] = None
     PWD: Optional[str] = None
-    NAM: Optional[str] = 0
+    NAM: Optional[int] = 0
 
     _ALIASES = {
         "user": "UID",
