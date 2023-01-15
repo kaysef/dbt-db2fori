@@ -12,7 +12,8 @@ from dbt.adapters.db2_for_i import __version__
 from dbt.contracts.connection import AdapterResponse
 
 from dataclasses import dataclass
-from dbt.logger import GLOBAL_LOGGER as logger
+from dbt.events import AdapterLogger
+logger = AdapterLogger('Db2Fori')
 
 
 @dataclass
@@ -21,16 +22,20 @@ class DB2ForICredentials(Credentials):
     driver: str
     system: str
     database: str
+
     UID: Optional[str] = None
     PWD: Optional[str] = None
     NAM: Optional[int] = 0
+    schema: Optional[str] = None
+
 
     _ALIASES = {
         "user": "UID",
         "username": "UID",
         "pass": "PWD",
         "password": "PWD",
-        "naming": "NAM"
+        "naming": "NAM",
+        "library": "schema"
     }
 
     @property
