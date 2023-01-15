@@ -27,9 +27,9 @@
         IF NOT EXISTS (
             SELECT SCHEMA_NAME
             FROM QSYS2.SCHEMATA
-            WHERE SCHEMA_NAME = UPPER('{{ schema }}')
+            WHERE SCHEMA_NAME = UPPER('{{ relation.without_identifier() }}')
         ) THEN
-            PREPARE stmt FROM 'CREATE SCHEMA {{ schema }}';
+            PREPARE stmt FROM 'CREATE SCHEMA {{ relation.without_identifier() }}';
             EXECUTE stmt;
         END IF;
     END
