@@ -64,9 +64,8 @@
 
 {% macro calc_batch_size(num_columns,max_batch_size) %}
     {#
-        SQL Server allows for a max of 2100 parameters in a single statement.
-        Check if the max_batch_size fits with the number of columns, otherwise
-        reduce the batch size so it fits.
+        DB2 has a limit on the number of parameters of parameters in a single statement.
+        Using a limit of 2001, (same as SQL Server for now)
     #}
     {% if num_columns * max_batch_size < 2100 %}
     {% set batch_size = max_batch_size %}

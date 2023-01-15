@@ -26,13 +26,16 @@ class DB2ForICredentials(Credentials):
     UID: Optional[str] = None
     PWD: Optional[str] = None
     NAM: Optional[int] = 0
+    schema: Optional[str] = None
+
 
     _ALIASES = {
         "user": "UID",
         "username": "UID",
         "pass": "PWD",
         "password": "PWD",
-        "naming": "NAM"
+        "naming": "NAM",
+        "library": "schema"
     }
 
     @property
