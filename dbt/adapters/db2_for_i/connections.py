@@ -48,7 +48,7 @@ class DB2ForICredentials(Credentials):
 
 
     def _connection_keys(self) -> Tuple[str, ...]:
-        return ('driver', 'database', 'NAM', 'UID')
+        return ('driver', 'database', 'NAM', 'UID', 'schema')
 
     
 class DB2ForIConnectionManager(SQLConnectionManager):
