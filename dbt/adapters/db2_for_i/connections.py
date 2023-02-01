@@ -67,16 +67,16 @@ class DB2ForIConnectionManager(SQLConnectionManager):
                 logger.debug("Failed to release connection!")
                 pass
 
-            raise dbt.exceptions.DatabaseException(str(e).strip()) from e
+            raise dbt.exceptions.DbtDatabaseError(str(e).strip()) from e
 
         except Exception as e:
             logger.debug(f"Error running SQL: {sql}")
             logger.debug("Rolling back transaction.")
             self.release()
-            if isinstance(e, dbt.exceptions.RuntimeException):
+            if isinstance(e, dbt.exceptions.DbtRuntimeError):
                 raise
 
-            raise dbt.exceptions.RuntimeException(e)
+            raise dbt.exceptions.DbtRuntimeError(e)
 
 
     @classmethod
@@ -125,7 +125,7 @@ class DB2ForIConnectionManager(SQLConnectionManager):
             connection.handle = None
             connection.state = "fail"
 
-            raise dbt.exceptions.FailedToConnectException(str(e))
+            raise dbt.exceptions.FailedToConnectError(str(e))
 
         return connection
 

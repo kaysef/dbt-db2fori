@@ -67,7 +67,7 @@ class DB2ForIAdapter(SQLAdapter):
         elif location == 'prepend':
             return f"'{value}' || {add_to}"
         else:
-            raise dbt.exceptions.RuntimeException(
+            raise dbt.exceptions.DbtRuntimeError(
                 f'Got an unexpected location value of "{location}"'
             )
 
