@@ -1,5 +1,4 @@
-from dbt.adapters.db2_for_i.connections import DB2ForIConnectionManager
-from dbt.adapters.db2_for_i.connections import DB2ForICredentials
+from dbt.adapters.db2_for_i.connections import DB2ForIConnectionManager, DB2ForICredentials
 from dbt.adapters.db2_for_i.impl import DB2ForIAdapter
 
 from dbt.adapters.base import AdapterPlugin
