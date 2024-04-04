@@ -31,8 +31,8 @@ default:
             threads: 4
             driver: IBM i Access ODBC Driver
             system: system
-            username: "{{ env_var('USER_NAME) }}"
-            password: "{{ env_var('PASSWORD) }}"
+            username: "{{ env_var('USER_NAME') }}"
+            password: "{{ env_var('PASSWORD') }}"
             database: db
             schema: schema
 
