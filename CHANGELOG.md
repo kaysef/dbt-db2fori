@@ -1,3 +1,9 @@
-# v0.1.0
+# 1.7.9
 
-Requires dbt v0.21.0
+- Support dbt-core v1.7
+
+
+# 1.4.5
+
+- Support dbt-core v1.4
+
