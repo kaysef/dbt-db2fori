@@ -59,24 +59,15 @@ class DB2ForIConnectionManager(SQLConnectionManager):
         try:
             yield
         except pyodbc.DatabaseError as e:
-            logger.debug(f'Database error: {str(e)} {sql}')
-
-            try:
-                self.release()
-            except pyodbc.Error:
-                logger.debug("Failed to release connection!")
-                pass
-
-            raise dbt.exceptions.DbtDatabaseError(str(e).strip()) from e
-
+            self.release()
+            logger.debug(f'IBM Db2 error: {str(e)}')
+            logger.debug(f'Error running SQL: {str(sql)}')
+            raise dbt.exceptions.DbtDatabaseError(str(e))
         except Exception as e:
+            self.release()
             logger.debug(f"Error running SQL: {sql}")
             logger.debug("Rolling back transaction.")
-            self.release()
-            if isinstance(e, dbt.exceptions.DbtRuntimeError):
-                raise
-
-            raise dbt.exceptions.DbtRuntimeError(e)
+            raise dbt.exceptions.DbtRuntimeError(str(e))
 
 
     @classmethod
@@ -131,8 +122,13 @@ class DB2ForIConnectionManager(SQLConnectionManager):
 
 
     def cancel(self, connection):
+        connection_name = connection.name
         logger.debug("Cancel query")
-        pass
+        try:
+            connection.handle.close()
+        except Exception as e:
+            logger.error("Error closing connection for cancel request")
+            raise Exception(str(e))
 
     def add_begin_query(self):
         pass
@@ -186,22 +182,5 @@ class DB2ForIConnectionManager(SQLConnectionManager):
             _message=message,
             rows_affected=rows
         )
-
-
-    def execute(self, sql: str, auto_begin: bool = False, fetch: bool = False) -> Tuple[Union[AdapterResponse, str], agate.Table]:
-        _, cursor = self.add_query(sql, auto_begin)
-        response = self.get_response(cursor)
-        if fetch:
-            # Get the result of the first non-empty result set (if any)
-            while cursor.description is None:
-                if not cursor.nextset(): 
-                    break
-            table = self.get_result_from_cursor(cursor)
-        else:
-            table = dbt.clients.agate_helper.empty_table()
-        # Step through all result sets so we process all errors
-        while cursor.nextset(): 
-            pass
-        return response, table
 
 

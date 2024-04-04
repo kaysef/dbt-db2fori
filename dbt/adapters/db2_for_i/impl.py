@@ -2,6 +2,7 @@ from dbt.adapters.sql import SQLAdapter
 from dbt.adapters.db2_for_i import DB2ForIConnectionManager
 import dbt.exceptions
 from dbt.adapters.db2_for_i.relation import DB2ForIRelation
+from dbt.adapters.db2_for_i.column import DB2ForIColumn
 
 import agate
 
@@ -13,6 +14,7 @@ from typing import (
 class DB2ForIAdapter(SQLAdapter):
     ConnectionManager = DB2ForIConnectionManager
     Relation = DB2ForIRelation
+    Column = DB2ForIColumn
 
     @classmethod
     def date_function(cls):
@@ -37,7 +39,7 @@ class DB2ForIAdapter(SQLAdapter):
     @classmethod
     def convert_boolean_type(cls, agate_table: agate.Table, col_idx: int) -> str:
         # some db2 for i versions do not support boolean data types, so I will use smallint here for now 
-        return "smallint"
+        return "decimal(1)"
 
     @classmethod
     def convert_number_type(cls, agate_table: agate.Table, col_idx: int) -> str:

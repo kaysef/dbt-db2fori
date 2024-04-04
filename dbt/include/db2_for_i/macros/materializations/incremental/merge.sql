@@ -63,13 +63,15 @@
 
     {% if unique_key %}
         {% if unique_key is sequence and unique_key is not string %}
-            delete from {{target }}
-            using {{ source }}
-            where (
-                {% for key in unique_key %}
-                    {{ source }}.{{ key }} = {{ target }}.{{ key }}
-                    {{ "and " if not loop.last }}
-                {% endfor %}
+            DELETE FROM {{ target }} AS _target
+            WHERE EXISTS (
+                SELECT * FROM {{ source }} AS _source
+                WHERE (
+                    {% for key in unique_key %}
+                        _source.{{ key }} = _target.{{ key }}
+                        {{ "and " if not loop.last }}
+                    {% endfor %}
+                )
             );
         {% else %}
             delete from {{ target }}

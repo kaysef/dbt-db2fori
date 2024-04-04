@@ -1,3 +1,12 @@
+
+{% macro case_relation_part(quoting, relation_part) %}
+  {% if quoting == False %}
+    {%- set relation_part = relation_part|upper -%}
+  {% endif %}
+  {{ return(relation_part) }}
+{% endmacro %}
+
+
 {% macro information_schema_name(database) -%}
   qsys2
 {%- endmacro %}
@@ -155,55 +164,14 @@
 
 {% macro db2_for_i__rename_relation(from_relation, to_relation) -%}
   {% call statement('rename_relation') -%}
-    {#
-      Not possible to rename views in DB2 so we have to do some work. The DDL
-      is selected from syscat.views and a new renamed view is created based on
-      this DDL. Comments is removed from the DDL by using regexp but this could
-      probably be done better.
-    #}
-    BEGIN
-      DECLARE rename_stmt VARCHAR(1000);
-      DECLARE create_stmt VARCHAR(10000);
-      DECLARE delete_stmt VARCHAR(1000);
+  {% if from_relation.is_table %}
+    RENAME TABLE {{ from_relation.quote(schema=False, identifier=False) }} TO {{ to_relation.replace_path(schema=None) }}
+  {% endif %}
 
-      IF EXISTS (
-        SELECT TABLE_NAME
-        FROM QSYS2.TABLES
-        WHERE TABLE_NAME = UPPER('{{ from_relation.identifier }}') AND TABLE_SCHEMA = UPPER('{{ from_relation.schema }}') AND TABLE_TYPE LIKE '%TABLE%'
-      ) THEN
-        SET rename_stmt = 'RENAME TABLE {{ from_relation.quote(schema=False, identifier=False) }} TO {{ to_relation.quote(identifier=False).identifier }}';
-        PREPARE stmt FROM rename_stmt;
-        EXECUTE stmt;
-      ELSEIF EXISTS (
-        SELECT TABLE_NAME
-        FROM QSYS2.TABLES
-        WHERE TABLE_NAME = UPPER('{{ from_relation.identifier }}') AND TABLE_SCHEMA = UPPER('{{ from_relation.schema }}') AND TABLE_TYPE = 'VIEW'
-      ) THEN
-        SET create_stmt = (
-          -- improve regexp here, use regexp_replace instead?
-          -- ...or (much better solution if possible) rename view.
-          SELECT
-            CONCAT(
-              'CREATE VIEW {{ to_relation.quote(schema=False, identifier=False) }} AS ',
-              -- remove 'create view as'
-              REGEXP_REPLACE(
-                -- remove comments here (single and multiline)
-                REGEXP_REPLACE(
-                  view_definition, --- This is the column that holds the view
-                  '(/\*(.|[\r\n])*?\*/)|(--(.*|[\r\n]))','', 1, 1, 'i' -- removing comments
-                ),
-                '.*CREATE.+VIEW.+AS', '', 1, 1, 'i' -- removing CREATE (OR REPLACE) VIEW AS'
-              )
-            )
-          FROM QSYS2.VIEWS
-          WHERE TABLE_SCHEMA = UPPER('{{ from_relation.schema }}') AND TABLE_NAME = UPPER('{{ from_relation.identifier }}')
-        );
-        PREPARE stmt FROM create_stmt;
-        EXECUTE stmt;
-        PREPARE stmt FROM 'DROP VIEW {{ from_relation.quote(schema=False, identifier=False) }}';
-        EXECUTE stmt;
-      END IF;
-    END    
+  {% if from_relation.is_view %}
+    {% do exceptions.raise_compiler_error('DB2orI Adapter Error: Renaming of views is not supported') %}
+  {% endif %}
+
   {%- endcall %}
 {% endmacro %}
 
