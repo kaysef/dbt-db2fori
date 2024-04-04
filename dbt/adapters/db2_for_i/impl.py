@@ -1,14 +1,12 @@
-from dbt.adapters.sql import SQLAdapter
-from dbt.adapters.db2_for_i import DB2ForIConnectionManager
-import dbt.exceptions
-from dbt.adapters.db2_for_i.relation import DB2ForIRelation
-from dbt.adapters.db2_for_i.column import DB2ForIColumn
+from typing import List, Optional
 
 import agate
 
-from typing import (
-    Optional, List
-)
+import dbt.exceptions
+from dbt.adapters.db2_for_i import DB2ForIConnectionManager
+from dbt.adapters.db2_for_i.column import DB2ForIColumn
+from dbt.adapters.db2_for_i.relation import DB2ForIRelation
+from dbt.adapters.sql import SQLAdapter
 
 
 class DB2ForIAdapter(SQLAdapter):
@@ -20,7 +18,6 @@ class DB2ForIAdapter(SQLAdapter):
     def date_function(cls):
         return "current_timestamp"
 
-
     @classmethod
     def convert_text_type(cls, agate_table: agate.Table, col_idx: int) -> str:
         column = agate_table.columns[col_idx]
@@ -30,22 +27,19 @@ class DB2ForIAdapter(SQLAdapter):
         length = max_len if max_len > 16 else 16
         return "varchar({})".format(length)
 
-
     @classmethod
     def convert_datetime_type(cls, agate_table: agate.Table, col_idx: int) -> str:
         return "timestamp"
 
-
     @classmethod
     def convert_boolean_type(cls, agate_table: agate.Table, col_idx: int) -> str:
-        # some db2 for i versions do not support boolean data types, so I will use smallint here for now 
+        # some db2 for i versions do not support boolean data types, so I will use smallint here for now
         return "decimal(1)"
 
     @classmethod
     def convert_number_type(cls, agate_table: agate.Table, col_idx: int) -> str:
         decimals = agate_table.aggregate(agate.MaxPrecision(col_idx))
         return "float" if decimals else "int"
-
 
     @classmethod
     def convert_time_type(cls, agate_table: agate.Table, col_idx: int) -> str:
@@ -56,25 +50,31 @@ class DB2ForIAdapter(SQLAdapter):
         return "date"
 
     def debug_query(self) -> None:
-        self.execute('select 1 as one from sysibm.sysdummy1')
-
+        self.execute("select 1 as one from sysibm.sysdummy1")
 
     # Methods used in adapter tests
-    def timestamp_add_sql(self, add_to: str, number: int = 1, interval: str = 'hour') -> str:
+    def timestamp_add_sql(
+        self, add_to: str, number: int = 1, interval: str = "hour"
+    ) -> str:
         return f"{add_to} - {number} {interval}"
 
-    def string_add_sql(self, add_to: str, value: str, location='append') -> str:
-        if location == 'append':
+    def string_add_sql(self, add_to: str, value: str, location="append") -> str:
+        if location == "append":
             return f"{add_to} || '{value}'"
-        elif location == 'prepend':
+        elif location == "prepend":
             return f"'{value}' || {add_to}"
         else:
             raise dbt.exceptions.DbtRuntimeError(
                 f'Got an unexpected location value of "{location}"'
             )
 
-    
-    def get_rows_different_sql(self, relation_a: DB2ForIRelation, relation_b: DB2ForIRelation, column_names: Optional[List[str]] = None, except_operator: str = 'EXCEPT') -> str:
+    def get_rows_different_sql(
+        self,
+        relation_a: DB2ForIRelation,
+        relation_b: DB2ForIRelation,
+        column_names: Optional[List[str]] = None,
+        except_operator: str = "EXCEPT",
+    ) -> str:
         """
         Generate SQL for a query that returns a single row with a two
         columns: the number of rows that are different between the two
@@ -99,7 +99,6 @@ class DB2ForIAdapter(SQLAdapter):
         return sql
 
 
-    
 COLUMNS_EQUAL_SQL = """
 with diff_count as (
     SELECT

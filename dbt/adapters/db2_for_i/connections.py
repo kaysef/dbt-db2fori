@@ -1,19 +1,17 @@
-from contextlib import contextmanager
-import pyodbc
-import os
 import time
-from typing import Optional, Tuple, Any, Union
-import agate
+from contextlib import contextmanager
+from dataclasses import dataclass
+from typing import Any, Optional, Tuple
+
+import pyodbc
 
 import dbt.exceptions
 from dbt.adapters.base import Credentials
 from dbt.adapters.sql import SQLConnectionManager
-from dbt.adapters.db2_for_i import __version__
 from dbt.contracts.connection import AdapterResponse
-
-from dataclasses import dataclass
 from dbt.events import AdapterLogger
-logger = AdapterLogger('Db2Fori')
+
+logger = AdapterLogger("Db2Fori")
 
 
 @dataclass
@@ -27,32 +25,29 @@ class DB2ForICredentials(Credentials):
     PWD: Optional[str] = None
     NAM: Optional[int] = 0
 
-
     _ALIASES = {
         "user": "UID",
         "username": "UID",
         "pass": "PWD",
         "password": "PWD",
         "naming": "NAM",
-        "library": "schema"
+        "library": "schema",
     }
 
     @property
     def type(self) -> str:
-        return 'db2_for_i'
+        return "db2_for_i"
 
-    
     @property
     def unique_field(self) -> str:
         return self.UID
 
-
     def _connection_keys(self) -> Tuple[str, ...]:
-        return ('driver', 'database', 'NAM', 'UID', 'schema')
+        return ("driver", "database", "NAM", "UID", "schema")
 
-    
+
 class DB2ForIConnectionManager(SQLConnectionManager):
-    TYPE = 'db2_for_i'
+    TYPE = "db2_for_i"
 
     @contextmanager
     def exception_handler(self, sql: str):
@@ -60,15 +55,14 @@ class DB2ForIConnectionManager(SQLConnectionManager):
             yield
         except pyodbc.DatabaseError as e:
             self.release()
-            logger.debug(f'IBM Db2 error: {str(e)}')
-            logger.debug(f'Error running SQL: {str(sql)}')
+            logger.debug(f"IBM Db2 error: {str(e)}")
+            logger.debug(f"Error running SQL: {str(sql)}")
             raise dbt.exceptions.DbtDatabaseError(str(e))
         except Exception as e:
             self.release()
             logger.debug(f"Error running SQL: {sql}")
             logger.debug("Rolling back transaction.")
             raise dbt.exceptions.DbtRuntimeError(str(e))
-
 
     @classmethod
     def open(cls, connection):
@@ -87,24 +81,21 @@ class DB2ForIConnectionManager(SQLConnectionManager):
             con_str.append(f"UID={credentials.UID}")
             con_str.append(f"PWD={credentials.PWD}")
 
-            con_str_concat = ';'.join(con_str)
+            con_str_concat = ";".join(con_str)
 
             index = []
             for i, elem in enumerate(con_str):
-                if 'pwd=' in elem.lower():
+                if "pwd=" in elem.lower():
                     index.append(i)
 
-            if len(index) !=0 :
-                con_str[index[0]]="PWD=****"
+            if len(index) != 0:
+                con_str[index[0]] = "PWD=****"
 
-            con_str_display = ';'.join(con_str)
+            con_str_display = ";".join(con_str)
 
             logger.debug(f"Using connection string: {con_str_display}")
 
-            handle = pyodbc.connect(
-                con_str_concat,
-                autocommit=True
-            )
+            handle = pyodbc.connect(con_str_concat, autocommit=True)
 
             connection.state = "open"
             connection.handle = handle
@@ -120,9 +111,8 @@ class DB2ForIConnectionManager(SQLConnectionManager):
 
         return connection
 
-
     def cancel(self, connection):
-        connection_name = connection.name
+        # connection_name = connection.name
         logger.debug("Cancel query")
         try:
             connection.handle.close()
@@ -136,7 +126,13 @@ class DB2ForIConnectionManager(SQLConnectionManager):
     def add_commit_query(self):
         pass
 
-    def add_query(self, sql: str, auto_begin: bool = True, bindings: Optional[Any] = None, abridge_sql_log: bool = False):
+    def add_query(
+        self,
+        sql: str,
+        auto_begin: bool = True,
+        bindings: Optional[Any] = None,
+        abridge_sql_log: bool = False,
+    ):
         connection = self.get_thread_connection()
 
         if auto_begin and connection.transaction_open is False:
@@ -164,23 +160,16 @@ class DB2ForIConnectionManager(SQLConnectionManager):
                     self.get_response(cursor), (time.time() - pre)
                 )
             )
-            
+
             return connection, cursor
 
-    
     @classmethod
     def get_credentials(cls, credentials):
         return credentials
 
-
     @classmethod
     def get_response(cls, cursor) -> AdapterResponse:
-        message = 'OK'
+        message = "OK"
         rows = cursor.rowcount
 
-        return AdapterResponse(
-            _message=message,
-            rows_affected=rows
-        )
-
-
+        return AdapterResponse(_message=message, rows_affected=rows)
